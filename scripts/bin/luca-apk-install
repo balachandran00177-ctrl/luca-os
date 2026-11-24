@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — Command-line APK Sideload Utility (luca-apk-install)
+# ==============================================================================
+
+set -euo pipefail
+
+if [ "$#" -lt 1 ]; then
+    echo "Usage: luca-apk-install <file1.apk> [file2.apk ...]"
+    exit 1
+fi
+
+for APK in "$@"; do
+    if [ ! -f "$APK" ]; then
+        echo "Error: File not found: $APK"
+        continue
+    fi
+    echo "⚡ [Luca OS] Installing Android application: $APK"
+    waydroid app install "$APK"
+    echo "✓ Installed: $(basename "$APK")"
+done

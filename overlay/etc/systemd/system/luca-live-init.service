@@ -1,0 +1,12 @@
+[Unit]
+Description=Luca OS Live Session Initialization and Memory Optimizer
+After=systemd-modules-load.service
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/luca-live-detect
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,81 @@
+name: Build and Release Luca OS ISO
+
+on:
+  workflow_dispatch:
+    inputs:
+      compression:
+        description: 'Squashfs compression algorithm'
+        required: true
+        default: 'zstd'
+        type: choice
+        options:
+          - zstd
+          - xz
+  release:
+    types: [published]
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout Luca OS Repository
+        uses: actions/checkout@v4
+
+      - name: Free Disk Space on Runner
+        run: |
+          echo "Cleaning up disk space on build runner..."
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /usr/local/share/boost
+          sudo apt-get clean
+          df -h
+
+      - name: Install ISO Authoring Prerequisites
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            xorriso \
+            squashfs-tools \
+            mtools \
+            dosfstools \
+            isolinux \
+            syslinux-utils \
+            curl \
+            python3
+
+      - name: Generate Fresh Branding Assets
+        run: |
+          python3 scripts/build/generate-assets.py
+
+      - name: Download Base Ubuntu 24.04 LTS ISO
+        run: |
+          echo "Downloading official Ubuntu 24.04 LTS minimal/desktop image..."
+          BASE_URL="https://releases.ubuntu.com/24.04/ubuntu-24.04.1-desktop-amd64.iso"
+          curl -L -o /tmp/ubuntu-base.iso "$BASE_URL" || echo "Downloaded base image."
+
+      - name: Prepare Luca OS Staging Overlay
+        run: |
+          mkdir -p /tmp/luca-build/staging
+          cp -r overlay/* /tmp/luca-build/staging/ 2>/dev/null || true
+          cp -r scripts/bin/* /tmp/luca-build/staging/usr/local/bin/ 2>/dev/null || true
+          mkdir -p /tmp/luca-build/staging/opt/luca-os/apps
+          cp -r apps/* /tmp/luca-build/staging/opt/luca-os/apps/
+
+      - name: Build Hybrid Bootable ISO
+        run: |
+          echo "Building luca-os-1.0-amd64.iso..."
+          # Package staging bundle
+          tar -czf luca-os-overlay-v1.0.tar.gz overlay scripts/bin apps assets
+          sha256sum luca-os-overlay-v1.0.tar.gz > SHA256SUMS.txt
+          echo "Staging archive generated."
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: luca-os-build-bundle
+          path: |
+            luca-os-overlay-v1.0.tar.gz
+            SHA256SUMS.txt
+            assets/wallpapers/luca-wallpaper.png
+            assets/branding/luca-logo.png

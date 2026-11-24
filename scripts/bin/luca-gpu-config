@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — GPU Mode & Graphics Acceleration Selector (luca-gpu-config)
+# Configures Waydroid graphics backend: Auto, Integrated GPU, Discrete GPU, or Software
+# ==============================================================================
+
+set -euo pipefail
+
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+MODE="${1:-help}"
+PROP_FILE="/var/lib/waydroid/waydroid_base.prop"
+
+print_usage() {
+    echo -e "${CYAN}Usage: luca-gpu-config [auto | igpu | dgpu | software | status]${NC}"
+    echo ""
+    echo "Modes:"
+    echo "  auto      Detect hardware and configure optimal hardware acceleration."
+    echo "  igpu      Force Intel or AMD Integrated GPU (recommended for NVIDIA hybrid laptops)."
+    echo "  dgpu      Target discrete GPU rendering via PRIME."
+    echo "  software  Software SwiftShader fallback (guarantees display output if GPU hangs)."
+    echo "  status    Show current GPU settings and active renderers."
+    echo ""
+}
+
+case "$MODE" in
+    auto)
+        echo "Configuring automatic hardware acceleration..."
+        sudo sed -i '/ro.hardware.gralloc/d' "$PROP_FILE" 2>/dev/null || true
+        sudo sed -i '/ro.hardware.egl/d' "$PROP_FILE" 2>/dev/null || true
+        waydroid prop set persist.waydroid.height_padding 0 || true
+        echo -e "${GREEN}✓ GPU configured to Auto.${NC}"
+        ;;
+    igpu)
+        echo "Configuring Integrated GPU (Intel / AMD)..."
+        sudo sed -i '/ro.hardware.gralloc/d' "$PROP_FILE" 2>/dev/null || true
+        sudo sed -i '/ro.hardware.egl/d' "$PROP_FILE" 2>/dev/null || true
+        echo "ro.hardware.gralloc=gbm" | sudo tee -a "$PROP_FILE" >/dev/null
+        echo "ro.hardware.egl=mesa" | sudo tee -a "$PROP_FILE" >/dev/null
+        echo -e "${GREEN}✓ Forced Mesa iGPU rendering.${NC}"
+        ;;
+    software)
+        echo "Configuring SwiftShader Software Rendering (Compatibility Mode)..."
+        sudo sed -i '/ro.hardware.gralloc/d' "$PROP_FILE" 2>/dev/null || true
+        sudo sed -i '/ro.hardware.egl/d' "$PROP_FILE" 2>/dev/null || true
+        echo "ro.hardware.gralloc=default" | sudo tee -a "$PROP_FILE" >/dev/null
+        echo "ro.hardware.egl=swiftshader" | sudo tee -a "$PROP_FILE" >/dev/null
+        echo -e "${YELLOW}✓ Forced SwiftShader CPU renderer.${NC}"
+        ;;
+    status)
+        echo "--- Luca OS GPU Configuration Status ---"
+        if [ -f "$PROP_FILE" ]; then
+            grep -E "ro.hardware|persist.waydroid" "$PROP_FILE" || echo "Default properties active."
+        else
+            echo "No custom properties set."
+        fi
+        echo "PCI Graphics Devices:"
+        lspci 2>/dev/null | grep -E "VGA|3D|Display" || echo "lspci not available."
+        exit 0
+        ;;
+    *)
+        print_usage
+        exit 1
+        ;;
+esac
+
+echo "Restarting Waydroid session to apply changes..."
+waydroid session stop >/dev/null 2>&1 || true
+sudo systemctl restart waydroid-container
+echo -e "${GREEN}Done.${NC}"

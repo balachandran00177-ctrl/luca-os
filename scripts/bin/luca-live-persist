@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — Live Persistence Manager (luca-live-persist)
+# Creates, resizes, or inspects casper-rw persistence files/partitions for USBs.
+# ==============================================================================
+
+set -euo pipefail
+
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+CMD="${1:-help}"
+
+print_usage() {
+    echo -e "${CYAN}Luca OS Live Persistence Utility${NC}"
+    echo "Usage: luca-live-persist [create <size_gb> <path> | check | status]"
+    echo ""
+    echo "Commands:"
+    echo "  create <size_gb> <path>  Generate a casper-rw ext4 persistence container file."
+    echo "  check                    Inspect current live mount status."
+    echo "  status                   Show persistence disk usage and health."
+    echo ""
+}
+
+case "$CMD" in
+    create)
+        SIZE_GB="${2:-4}"
+        DEST_FILE="${3:-casper-rw}"
+        echo "Creating ${SIZE_GB} GB persistence file at $DEST_FILE..."
+        dd if=/dev/zero of="$DEST_FILE" bs=1M count=$((SIZE_GB * 1024)) status=progress
+        mkfs.ext4 -F -L casper-rw "$DEST_FILE"
+        echo -e "${GREEN}✓ Persistence file '$DEST_FILE' created successfully!${NC}"
+        ;;
+    check|status)
+        luca-live-detect
+        ;;
+    *)
+        print_usage
+        exit 1
+        ;;
+esac

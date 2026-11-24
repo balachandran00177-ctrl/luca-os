@@ -1,0 +1,49 @@
+name: Luca OS CI Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Linting & Test Tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y shellcheck python3-tk xvfb libglib2.0-bin
+          python3 -m pip install --upgrade pip flake8
+
+      - name: Lint Shell Scripts
+        run: |
+          echo "Checking bash scripts with shellcheck..."
+          find scripts/ -type f -name "*.sh" -exec shellcheck -e SC1090,SC1091 {} +
+
+      - name: Validate Asset Generator
+        run: |
+          echo "Testing pure Python asset generator..."
+          python3 scripts/build/generate-assets.py
+
+      - name: Test GUI Applications (Headless Xvfb)
+        run: |
+          echo "Testing Luca Welcome, Installer, and Control Center GUI initialization..."
+          xvfb-run -a python3 apps/luca-welcome/luca_welcome.py --test
+          xvfb-run -a python3 apps/luca-installer/luca_installer.py --test
+          xvfb-run -a python3 apps/luca-control/luca_control.py --test
+
+      - name: Validate GSettings Schema Override
+        run: |
+          echo "Validating GNOME GSettings schema override..."
+          cp overlay/usr/share/glib-2.0/schemas/99_luca-os.gschema.override /tmp/
+          glib-compile-schemas --strict /usr/share/glib-2.0/schemas/

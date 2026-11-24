@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Luca Subsystem Control
+Comment=Manage Waydroid Android Subsystem, Multi-Window Mode and GPU Acceleration
+Exec=/usr/local/bin/luca-control
+Icon=luca-os
+Terminal=false
+Categories=Settings;HardwareSettings;System;
+StartupNotify=true

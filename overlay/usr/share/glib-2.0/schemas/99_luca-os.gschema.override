@@ -1,0 +1,52 @@
+# Luca OS GNOME Desktop Default Settings
+# Modern Android-style tablet/PC dock, dark mode, custom typography & wallpaper
+
+[org.gnome.desktop.background]
+picture-uri='file:///usr/share/backgrounds/luca-wallpaper.png'
+picture-uri-dark='file:///usr/share/backgrounds/luca-wallpaper.png'
+picture-options='zoom'
+primary-color='#070A10'
+secondary-color='#070A10'
+
+[org.gnome.desktop.screensaver]
+picture-uri='file:///usr/share/backgrounds/luca-wallpaper.png'
+primary-color='#070A10'
+secondary-color='#070A10'
+
+[org.gnome.desktop.interface]
+color-scheme='prefer-dark'
+gtk-theme='Yaru-dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Yaru'
+font-name='Ubuntu 11'
+document-font-name='Sans 11'
+monospace-font-name='Ubuntu Mono 13'
+clock-show-weekday=true
+clock-show-seconds=false
+clock-format='24h'
+show-battery-percentage=true
+enable-animations=true
+
+[org.gnome.desktop.peripherals.touchpad]
+natural-scroll=true
+tap-to-click=true
+two-finger-scrolling-enabled=true
+
+[org.gnome.desktop.wm.preferences]
+button-layout='appmenu:minimize,maximize,close'
+focus-mode='click'
+
+[org.gnome.shell.extensions.dash-to-dock]
+dock-position='BOTTOM'
+extend-height=false
+dock-fixed=false
+autohide=true
+intellihide=true
+dash-max-icon-size=44
+transparency-mode='FIXED'
+background-opacity=0.65
+show-apps-at-top=false
+click-action='minimize-or-previews'
+running-indicator-style='DOTS'
+custom-theme-shrink=true
+isolate-workspaces=false

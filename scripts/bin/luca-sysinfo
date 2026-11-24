@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — System Info Banner & Hardware Monitor (luca-sysinfo)
+# ==============================================================================
+
+CYAN='\033[0;36m'
+BLUE='\033[0;34m'
+PURPLE='\033[0;35m'
+GREEN='\033[0;32m'
+NC='\033[0m'
+
+if command -v fastfetch >/dev/null 2>&1; then
+    fastfetch
+else
+    cat << 'EOF'
+  __    __  __  ____   __       ___   ____ 
+ (  )  (  )(  )( ___) / _\     / _ \ / ___)
+ / (_/\ ) \/ (  )__) /    \   ( (_) )\___ \
+ \____/ \____/ (____)\_/\_/    \___/ (____/
+      Desktop Linux + Android Subsystem
+EOF
+    echo ""
+    echo -e "${CYAN}OS:${NC}        Luca OS 1.0 (amd64, Wayland)"
+    echo -e "${CYAN}Kernel:${NC}    $(uname -r)"
+    echo -e "${CYAN}Uptime:${NC}    $(uptime -p 2>/dev/null || uptime)"
+    echo -e "${CYAN}Display:${NC}   ${XDG_SESSION_TYPE:-Unknown}"
+    echo -e "${CYAN}Subsystem:${NC} $(waydroid status 2>/dev/null | grep -o 'Session: [A-Z]*' || echo 'Waydroid Standby')"
+    echo ""
+fi

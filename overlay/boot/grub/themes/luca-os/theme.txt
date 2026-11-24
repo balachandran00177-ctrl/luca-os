@@ -1,0 +1,41 @@
+# Luca OS Modern GRUB Theme
+title-text: "Luca OS 1.0 (Desktop Edition)"
+title-font: "Unifont Regular 16"
+title-color: "#00F2FE"
+message-font: "Unifont Regular 14"
+message-color: "#94A3B8"
+message-bg-color: "#0B111D"
+desktop-image: "background.png"
+desktop-color: "#070A10"
+
+# Boot Selection Menu Box
++ boot_menu {
+  left = 25%
+  top = 28%
+  width = 50%
+  height = 46%
+  item_font = "Unifont Regular 14"
+  item_color = "#E2E8F0"
+  selected_item_color = "#00F2FE"
+  icon_width = 24
+  icon_height = 24
+  item_icon_space = 12
+  item_height = 36
+  item_padding = 6
+  item_spacing = 8
+  selected_item_pixmap_style = "select_*.png"
+}
+
+# Progress Bar
++ progress_bar {
+  id = "__timeout__"
+  left = 25%
+  top = 78%
+  width = 50%
+  height = 14
+  text = "@TIMEOUT_NOTIFICATION_LONG@"
+  text_color = "#64748B"
+  font = "Unifont Regular 12"
+  bar_style = "progress_bar_*.png"
+  highlight_style = "progress_highlight_*.png"
+}

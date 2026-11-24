@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Luca App Store
+Comment=Discover and Install Android APKs, Flatpaks, and Linux Software
+Exec=/usr/local/bin/luca-store
+Icon=luca-os
+Terminal=false
+Categories=System;PackageManager;Utility;
+StartupNotify=true

@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Luca OS
+Description=Luca OS Boot Splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/luca-os
+ScriptFile=/usr/share/plymouth/themes/luca-os/luca-os.script

@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Luca Package & APK Installer
+Comment=Install Android APKs, Flatpaks, and Linux Packages
+Exec=/usr/local/bin/luca-installer %f
+Icon=luca-os
+Terminal=false
+MimeType=application/vnd.android.package-archive;application/vnd.debian.binary-package;
+Categories=System;PackageManager;
+StartupNotify=true

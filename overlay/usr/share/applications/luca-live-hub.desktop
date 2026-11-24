@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Luca Live Hub
+Comment=Live USB Pendrive Status, Persistence Monitor, and Installer
+Exec=/usr/local/bin/luca-live-hub
+Icon=luca-os
+Terminal=false
+Categories=System;Utility;
+StartupNotify=true

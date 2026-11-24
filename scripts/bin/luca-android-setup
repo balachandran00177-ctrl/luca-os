@@ -1,0 +1,89 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — Android Subsystem Initializer (luca-android-setup)
+# Sets up Waydroid with Google Play (GAPPS), configures network bridge,
+# enables multi-window PC desktop integration, and verifies readiness.
+# ==============================================================================
+
+set -euo pipefail
+
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${CYAN}======================================================================${NC}"
+echo -e "${CYAN}             ⚡ Luca OS — Android Subsystem Initializer                ${NC}"
+echo -e "${CYAN}======================================================================${NC}"
+
+# 1. Check Display Server (Wayland is required for multi-window)
+if [ -z "${WAYLAND_DISPLAY:-}" ]; then
+    echo -e "${YELLOW}[Warning]${NC} You do not appear to be in a native Wayland session (WAYLAND_DISPLAY is unset)."
+    echo -e "          Waydroid multi-window mode requires a Wayland desktop session."
+    echo -e "          If you encounter issues, please log out and choose 'Ubuntu on Wayland' at the login screen."
+    echo ""
+fi
+
+# 2. Check root / sudo privileges
+if [ "$EUID" -ne 0 ]; then
+    SUDO="sudo"
+else
+    SUDO=""
+fi
+
+# 3. Check if Waydroid is installed
+if ! command -v waydroid >/dev/null 2>&1; then
+    echo -e "${YELLOW}[1/4]${NC} Waydroid not found. Installing repository and packages..."
+    curl -s https://repo.waydro.id | $SUDO bash
+    $SUDO apt-get update
+    $SUDO apt-get install -y waydroid
+else
+    echo -e "${GREEN}[1/4]${NC} Waydroid engine detected."
+fi
+
+# 4. Initialize Waydroid container with GAPPS
+echo -e "${CYAN}[2/4]${NC} Initializing Android container with Google Play (GAPPS)..."
+if [ ! -d "/var/lib/waydroid/images" ] || [ ! -f "/var/lib/waydroid/images/system.img" ]; then
+    echo "Downloading and extracting Android system images..."
+    $SUDO waydroid init -s GAPPS -f
+else
+    echo "Android system images already initialized."
+fi
+
+# 5. Enable and start Waydroid systemd container service
+echo -e "${CYAN}[3/4]${NC} Starting and enabling waydroid-container service..."
+$SUDO systemctl enable --now waydroid-container
+
+# 6. Configure Network & Firewall (UFW / iptables) for Internet Access
+echo -e "${CYAN}[4/4]${NC} Configuring network bridge routing for waydroid0..."
+if command -v ufw >/dev/null 2>&1; then
+    $SUDO ufw allow 53/udp >/dev/null 2>&1 || true
+    $SUDO ufw allow 67/udp >/dev/null 2>&1 || true
+    $SUDO ufw default allow FORWARD >/dev/null 2>&1 || true
+    $SUDO ufw allow in on waydroid0 >/dev/null 2>&1 || true
+    $SUDO ufw route allow in on waydroid0 >/dev/null 2>&1 || true
+fi
+
+# 7. Configure Multi-Window mode and restart session
+echo "Enabling PC Freeform Multi-Window Mode..."
+# Start a temporary session to apply property
+waydroid session start >/dev/null 2>&1 &
+SESSION_PID=$!
+sleep 5
+waydroid prop set persist.waydroid.multi_windows true || true
+waydroid prop set persist.waydroid.suspend false || true
+waydroid session stop >/dev/null 2>&1 || true
+wait $SESSION_PID 2>/dev/null || true
+
+echo ""
+echo -e "${GREEN}======================================================================${NC}"
+echo -e "${GREEN}  ✓ Android Subsystem setup completed successfully!                   ${NC}"
+echo -e "${GREEN}======================================================================${NC}"
+echo ""
+echo -e "Next steps for Luca OS:"
+echo -e "  1. Launch Android apps from your ${CYAN}Application Drawer${NC} or bottom dock."
+echo -e "  2. Run ${CYAN}luca-play-id${NC} if Google Play asks for device certification."
+echo -e "  3. Run ${CYAN}luca-arm-enable${NC} to install ARM64 app/game translation."
+echo -e "  4. Sideload any APK using ${CYAN}luca-installer <path-to-app.apk>${NC}."
+echo ""

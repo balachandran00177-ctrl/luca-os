@@ -1,0 +1,14 @@
+PRETTY_NAME="Luca OS 1.0 (Desktop Edition)"
+NAME="Luca OS"
+VERSION_ID="1.0"
+VERSION="1.0 (Desktop Edition)"
+VERSION_CODENAME=noble
+ID=lucaos
+ID_LIKE=ubuntu
+HOME_URL="https://github.com/luca-os/luca-os"
+SUPPORT_URL="https://github.com/luca-os/luca-os/discussions"
+BUG_REPORT_URL="https://github.com/luca-os/luca-os/issues"
+PRIVACY_POLICY_URL="https://github.com/luca-os/luca-os/blob/main/PRIVACY.md"
+UBUNTU_CODENAME=noble
+LOGO=luca-os
+ANSI_COLOR="0;36"

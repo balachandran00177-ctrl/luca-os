@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Luca OS Welcome
+Comment=Welcome to Luca OS - Getting Started and Subsystem Setup
+Exec=/usr/local/bin/luca-welcome
+Icon=luca-os
+Terminal=false
+Categories=Utility;Settings;System;
+StartupNotify=true

@@ -1,0 +1,10 @@
+# Luca OS Default GRUB Settings
+GRUB_DEFAULT=0
+GRUB_TIMEOUT_STYLE=menu
+GRUB_TIMEOUT=5
+GRUB_DISTRIBUTOR="Luca OS"
+GRUB_CMDLINE_LINUX_DEFAULT="quiet splash"
+GRUB_CMDLINE_LINUX=""
+GRUB_THEME="/boot/grub/themes/luca-os/theme.txt"
+GRUB_BACKGROUND="/boot/grub/themes/luca-os/background.png"
+GRUB_GFXMODE="1920x1080,1280x720,auto"

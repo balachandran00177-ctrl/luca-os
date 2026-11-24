@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Luca OS — Live Session & Persistence Detector (luca-live-detect)
+# Identifies Live USB execution, verifies persistent storage, and tunes RAM.
+# ==============================================================================
+
+set -euo pipefail
+
+CYAN='\033[0;36m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+RED='\033[0;31m'
+NC='\033[0m'
+
+echo -e "${CYAN}======================================================================${NC}"
+echo -e "${CYAN}             ⚡ Luca OS — Live USB Environment Diagnostics             ${NC}"
+echo -e "${CYAN}======================================================================${NC}"
+
+IS_LIVE=0
+IS_PERSISTENT=0
+IS_TORAM=0
+
+# 1. Detect Live Boot Environment
+if [ -d "/run/casper" ] || [ -d "/run/live" ] || grep -qE "boot=casper|boot=live" /proc/cmdline 2>/dev/null; then
+    IS_LIVE=1
+    echo -e "${GREEN}✓ Running in Live USB Pendrive Session.${NC}"
+else
+    echo -e "${CYAN}✓ Running in Installed System Mode (Internal Disk).${NC}"
+fi
+
+# 2. Check for 'toram' (Running entirely in system RAM)
+if grep -q "toram" /proc/cmdline 2>/dev/null; then
+    IS_TORAM=1
+    echo -e "${GREEN}✓ High-Performance RAM Mode active (OS loaded into memory).${NC}"
+fi
+
+# 3. Detect Persistence Partition/Overlay (casper-rw)
+if mount | grep -qE "casper-rw|cow"; then
+    IS_PERSISTENT=1
+    PERSIST_MOUNT=$(mount | grep -E "casper-rw|cow" | head -n1 | awk '{print $3}')
+    PERSIST_FREE=$(df -h "$PERSIST_MOUNT" 2>/dev/null | awk 'NR==2 {print $4}')
+    echo -e "${GREEN}✓ Persistent Storage is ACTIVE!${NC} (Free space: $PERSIST_FREE)"
+    echo "  All files, downloads, Wi-Fi credentials, and Android apps will survive reboots."
+else
+    if [ "$IS_LIVE" -eq 1 ]; then
+        echo -e "${YELLOW}⚠ Live session is RUNNING IN READ-ONLY/TEMPORARY MODE.${NC}"
+        echo "  Changes will be lost on shutdown. To enable persistence, create your USB with 'luca-live-creator'."
+    fi
+fi
+
+# 4. Memory & ZRAM Optimization
+TOTAL_RAM_MB=$(free -m | awk '/^Mem:/{print $2}')
+echo ""
+echo "System Memory: ${TOTAL_RAM_MB} MB"
+
+if [ "$TOTAL_RAM_MB" -lt 4500 ] && [ "$IS_LIVE" -eq 1 ]; then
+    echo -e "${YELLOW}[Memory Optimizer]${NC} Low RAM detected for Live Session. Activating zram compressed swap..."
+    if command -v zramctl >/dev/null 2>&1 && [ ! -e "/dev/zram0" ]; then
+        modprobe zram num_devices=1 2>/dev/null || true
+        zramctl --find --size 2048M -a zstd 2>/dev/null || true
+        mkswap /dev/zram0 2>/dev/null || true
+        swapon -p 100 /dev/zram0 2>/dev/null || true
+        echo -e "${GREEN}✓ 2 GB compressed zram swap enabled for smooth Android execution.${NC}"
+    fi
+fi
+
+echo ""
+echo "Live Environment Summary:"
+echo "  Live USB:     $([ $IS_LIVE -eq 1 ] && echo 'YES' || echo 'NO')"
+echo "  Persistence:  $([ $IS_PERSISTENT -eq 1 ] && echo 'YES' || echo 'NO')"
+echo "  RAM Mode:     $([ $IS_TORAM -eq 1 ] && echo 'YES' || echo 'NO')"
+echo ""
